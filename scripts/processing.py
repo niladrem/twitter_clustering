@@ -6,32 +6,16 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
-<<<<<<< HEAD
 import argparse
 
 classifier = TextClassifier.load('en-sentiment')
 
 
 def getDBData(connection, limit=None):
-=======
-
-classifier = TextClassifier.load('en-sentiment')
-
-def getDBData(limit=None):
->>>>>>> 7a4190d... rebase code
     """Downloads PostgreSQL data into pandas dataframes"""
     users = None
     relations = None
     try:
-<<<<<<< HEAD
-=======
-        connection = psycopg2.connect(user="twitter",
-                                     password="twitter",
-                                     host="127.0.0.1",
-                                     port="5432",
-                                     database="twitter")
-        print("Estabilished connection to PostgreSQL")
->>>>>>> 7a4190d... rebase code
         if limit is None:
             users = pd.read_sql("SELECT * from users", connection)
             relations = pd.read_sql("SELECT * from relations", connection)
@@ -47,10 +31,7 @@ def getDBData(limit=None):
             print("Closed connection to PostgreSQL")
     return users, relations
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 7a4190d... rebase code
 def clean(raw):
     """ Remove hyperlinks and markup """
     result = re.sub("<[a][^>]*>(.+?)</[a]>", 'Link.', raw)
@@ -132,16 +113,3 @@ def createX(rel, user_map, weight_dict="default"):
     X = 1 / (X + (X == 0))
     return X
 
-<<<<<<< HEAD
-=======
-if __name__ == "__main__":
-    print("Loading data")
-    us, rel = getDBData()
-    user_map = createUserMapping(us)
-    X = createX(rel, user_map)
-    np.savetxt("../data/X.csv", X, delimiter=",", newline="\n")
-    user_map.to_csv("../data/user_map.csv")
-    us.to_csv("../data/users.csv")
-    rel.to_csv("../data/relations.csv")
-    print("Writing data")
->>>>>>> 7a4190d... rebase code
