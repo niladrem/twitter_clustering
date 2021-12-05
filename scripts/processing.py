@@ -111,5 +111,6 @@ def createX(rel, user_map, weight_dict="default"):
 
     # normalization
     X = 1 / (X + (X == 0))
+    np.fill_diagonal(X, 0)
     return X
 

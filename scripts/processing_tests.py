@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 
-class TestGetFromPostgres(unittest.TestCase):
+class test_GetFromPostgres(unittest.TestCase):
     def setUp(self):
         self.postgresql = testing.postgresql.Postgresql()
         self.conn = psycopg2.connect(**self.postgresql.dsn())
@@ -65,7 +65,7 @@ class TestGetFromPostgres(unittest.TestCase):
                                                     "query": "logh", "process_time": None, "created_at": None}])))
 
 
-class TestMain(unittest.TestCase):
+class test_Main(unittest.TestCase):
     def test_clean(self):
         # given
         text = "for many, &quot;hell&quot; is a <i>fiery</i> place of " \
@@ -128,43 +128,43 @@ class TestMain(unittest.TestCase):
                                                     {"X_id": 2, "twitter_id": 20},
                                                     {"X_id": 3, "twitter_id": 21}]))
 
-        def test_createX(self):
-            # given
-            users = pd.DataFrame([{"id": 33,
-                                   "screen_name": "Yang Wen-li",
-                                   "followers_count": 1978,
-                                   "friends_count": 1920,
-                                   "favourites_count": 2005},
-                                  {"id": 34,
-                                   "screen_name": "Julian Mintz",
-                                   "followers_count": 1978,
-                                   "friends_count": 1920,
-                                   "favourites_count": 2005},
-                                  {"id": 20,
-                                   "screen_name": "Reinhard von Lohengramm",
-                                   "followers_count": 776,
-                                   "friends_count": 25,
-                                   "favorites_count": 801},
-                                  {"id": 21,
-                                   "screen_name": "Siegfried Kircheis",
-                                   "followers_count": 776,
-                                   "friends_count": 25,
-                                   "favorites_count": 801}
-                                  ])
-            relations = pd.DataFrame([{"id_source": 33, "id_destination": 34, "tweet_id": None,
-                                       "type": "follow", "content": None},
-                                      {"id_source": 34, "id_destination": 33, "tweet_id": None,
-                                       "type": "follow", "content": None},
-                                      {"id_source": 20, "id_destination": 21, "tweet_id": None,
-                                       "type": "follow", "content": None},
-                                      {"id_source": 21, "id_destination": 20, "tweet_id": None,
-                                       "type": "follow", "content": None}])
-            # then
-            self.assertEqual(processing.createX(relations, processing.createUserMapping(users)),
-                             np.array([[0., 0.01, 1., 1.],
-                                       [0.01, 0., 1., 1.],
-                                       [1., 1., 0., 0.01],
-                                       [1., 1., 0.01, 0.]]))
+    def test_createX(self):
+        # given
+        users = pd.DataFrame([{"id": 33,
+                               "screen_name": "Yang Wen-li",
+                               "followers_count": 1978,
+                               "friends_count": 1920,
+                               "favourites_count": 2005},
+                              {"id": 34,
+                               "screen_name": "Julian Mintz",
+                               "followers_count": 1978,
+                               "friends_count": 1920,
+                               "favourites_count": 2005},
+                              {"id": 20,
+                               "screen_name": "Reinhard von Lohengramm",
+                               "followers_count": 776,
+                               "friends_count": 25,
+                               "favorites_count": 801},
+                              {"id": 21,
+                               "screen_name": "Siegfried Kircheis",
+                               "followers_count": 776,
+                               "friends_count": 25,
+                               "favorites_count": 801}
+                              ])
+        relations = pd.DataFrame([{"id_source": 33, "id_destination": 34, "tweet_id": None,
+                                   "type": "follow", "content": None},
+                                  {"id_source": 34, "id_destination": 33, "tweet_id": None,
+                                   "type": "follow", "content": None},
+                                  {"id_source": 20, "id_destination": 21, "tweet_id": None,
+                                   "type": "follow", "content": None},
+                                  {"id_source": 21, "id_destination": 20, "tweet_id": None,
+                                   "type": "follow", "content": None}])
+        # then
+        np.testing.assert_equal(processing.createX(relations, processing.createUserMapping(users)),
+                         np.array([[0., 0.01, 1., 1.],
+                                   [0.01, 0., 1., 1.],
+                                   [1., 1., 0., 0.01],
+                                   [1., 1., 0.01, 0.]]))
 
 
 if __name__ == '__main__':
