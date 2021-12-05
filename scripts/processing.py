@@ -6,20 +6,16 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
+import argparse
 
 classifier = TextClassifier.load('en-sentiment')
 
-def getDBData(limit=None):
+
+def getDBData(connection, limit=None):
     """Downloads PostgreSQL data into pandas dataframes"""
     users = None
     relations = None
     try:
-        connection = psycopg2.connect(user="twitter",
-                                     password="twitter",
-                                     host="127.0.0.1",
-                                     port="5432",
-                                     database="twitter")
-        print("Estabilished connection to PostgreSQL")
         if limit is None:
             users = pd.read_sql("SELECT * from users", connection)
             relations = pd.read_sql("SELECT * from relations", connection)
@@ -34,6 +30,7 @@ def getDBData(limit=None):
             connection.close()
             print("Closed connection to PostgreSQL")
     return users, relations
+
 
 def clean(raw):
     """ Remove hyperlinks and markup """
@@ -114,15 +111,6 @@ def createX(rel, user_map, weight_dict="default"):
 
     # normalization
     X = 1 / (X + (X == 0))
+    np.fill_diagonal(X, 0)
     return X
 
-if __name__ == "__main__":
-    print("Loading data")
-    us, rel = getDBData()
-    user_map = createUserMapping(us)
-    X = createX(rel, user_map)
-    np.savetxt("../data/X.csv", X, delimiter=",", newline="\n")
-    user_map.to_csv("../data/user_map.csv")
-    us.to_csv("../data/users.csv")
-    rel.to_csv("../data/relations.csv")
-    print("Writing data")
