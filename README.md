@@ -14,4 +14,4 @@ With bash:
  at url: /localhost:5000/
 
 ## Connection to database
-Established automatically if module 1 running.
+Established automatically if **module 1** running.
