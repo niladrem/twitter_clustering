@@ -11,6 +11,7 @@ classifier = TextClassifier.load('en-sentiment')
 
 def getDBData(limit=None):
     """Downloads PostgreSQL data into pandas dataframes"""
+    connection = None
     users = None
     relations = None
     try:
@@ -94,15 +95,23 @@ def createUserMapping(us):
 def createX(rel, user_map, weight_dict="default"):
     """Creates X distance matrix for all users"""
     if weight_dict == "default":
-        weight_dict = {
-            "follow": 50,
-            "retweet": 5,
-            "like": 10,
-            "mention": 10,
-            "quote": 5,
-            "reply": 10,
-            "friend": 50
-        }
+        weight_dict = default_weight_dict
+    default_weight_dict = {
+        "follow": 50,
+        "retweet": 5,
+        "like": 10,
+        "mention": 10,
+        "quote": 5,
+        "reply": 10,
+        "friend": 50
+    }
+
+    for reaction in weight_dict:
+        if weight_dict[reaction] == 0:
+            weight_dict[reaction] = default_weight_dict[reaction]
+
+
+
     rel = rel.merge(user_map.set_index('twitter_id').rename(columns={'X_id': 'X_id_source'}),
                     how='left', left_on='id_source', right_on='twitter_id')
     rel = rel.merge(user_map.set_index('twitter_id').rename(columns={'X_id': 'X_id_destination'}),

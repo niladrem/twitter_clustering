@@ -10,7 +10,13 @@ def cb():
 	data = request.args.get('data')
 
 
+
 	data = np.array(data.split(';'))
+	for i in range(data):
+		if data[i] == '':
+			data[i] = 0
+
+
 	weight_dict = {
 			"follow": int(data[4]),
             "retweet": int(data[5]),
