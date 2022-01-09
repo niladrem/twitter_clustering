@@ -1,5 +1,15 @@
 from flask import Flask, config, render_template, request
+import genieclust
+import psycopg2
+from psycopg2 import Error
+import pandas as pd
+import re
+from flair.models import TextClassifier
+from flair.data import Sentence
+from segtok.segmenter import split_single
 import numpy as np
+import argparse
+import psycopg2
 
 from scripts import placeholderPlot, processing, clustering
 
@@ -34,9 +44,9 @@ def cb():
 	labels = gen.fit_predict(X)
 
 	if (data[3] == '0'):
-		return placeholderPlot.heatmap(X, labels)
+		return placeholderPlot.heatmap(X, labels.tolist())
 	else:
-		return placeholderPlot.bubble(labels, int(data[1]))
+		return placeholderPlot.bubble(labels.tolist(), int(data[1]))
    
 @app.route('/')
 def index():
