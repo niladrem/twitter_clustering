@@ -7,7 +7,7 @@ import numpy as np
 def heatmap(X, labels):
 	X = pd.DataFrame(X)
 	X['labels'] = labels
-	X = X.set_indexes('labels')
+	X = X.set_index('labels')
 	X.columns = labels
 	X.sort_index(axis=0).sort_index(axis=1)
 
