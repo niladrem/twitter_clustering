@@ -11,7 +11,7 @@ def heatmap(X, labels):
 	X.columns = labels
 	X.sort_index(axis=0).sort_index(axis=1)
 
-	fig = px.imshow(df)
+	fig = px.imshow(X)
 	fig.update_yaxes(visible=False, showticklabels=False)
 	fig.update_xaxes(visible=False, showticklabels=False)
 	graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
