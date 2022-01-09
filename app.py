@@ -12,7 +12,7 @@ def cb():
 
 
 	data = np.array(data.split(';'))
-	for i in range(data):
+	for i in range(len(data)):
 		if data[i] == '':
 			data[i] = 0
 
