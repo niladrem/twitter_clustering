@@ -17,7 +17,7 @@ def getDBData(limit=None):
     try:
         connection = psycopg2.connect(user="twitter",
                                      password="twitter",
-                                     host="127.0.0.1",
+                                     host="postgres",
                                      port="5432",
                                      database="twitter")
         print("Estabilished connection to PostgreSQL")
