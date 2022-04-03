@@ -6,21 +6,16 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
+import argparse
 
 classifier = TextClassifier.load('en-sentiment')
 
-def getDBData(limit=None):
+
+def getDBData(connection, limit=None):
     """Downloads PostgreSQL data into pandas dataframes"""
-    connection = None
     users = None
     relations = None
     try:
-        connection = psycopg2.connect(user="twitter",
-                                     password="twitter",
-                                     host="postgres",
-                                     port="5432",
-                                     database="twitter")
-        print("Estabilished connection to PostgreSQL")
         if limit is None:
             users = pd.read_sql("SELECT * from users", connection)
             relations = pd.read_sql("SELECT * from relations", connection)
@@ -94,9 +89,7 @@ def createUserMapping(us):
 
 def createX(rel, user_map, weight_dict="default"):
     """Creates X distance matrix for all users"""
-    if weight_dict == "default":
-        weight_dict = default_weight_dict
-    default_weight_dict = {
+     default_weight_dict = {
         "follow": 50,
         "retweet": 5,
         "like": 10,
@@ -105,13 +98,13 @@ def createX(rel, user_map, weight_dict="default"):
         "reply": 10,
         "friend": 50
     }
+    if weight_dict == "default":
+        weight_dict = default_weight_dict
+   
 
     for reaction in weight_dict:
         if weight_dict[reaction] == 0:
             weight_dict[reaction] = default_weight_dict[reaction]
-
-
-
     rel = rel.merge(user_map.set_index('twitter_id').rename(columns={'X_id': 'X_id_source'}),
                     how='left', left_on='id_source', right_on='twitter_id')
     rel = rel.merge(user_map.set_index('twitter_id').rename(columns={'X_id': 'X_id_destination'}),
@@ -123,15 +116,6 @@ def createX(rel, user_map, weight_dict="default"):
 
     # normalization
     X = 1 / (X + (X == 0))
+    np.fill_diagonal(X, 0)
     return X
 
-if __name__ == "__main__":
-    print("Loading data")
-    us, rel = getDBData()
-    user_map = createUserMapping(us)
-    X = createX(rel, user_map)
-    np.savetxt("data/X.csv", X, delimiter=",", newline="\n")
-    user_map.to_csv("data/user_map.csv")
-    us.to_csv("data/users.csv")
-    rel.to_csv("data/relations.csv")
-    print("Writing data")
