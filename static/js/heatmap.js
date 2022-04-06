@@ -9,7 +9,7 @@ var heat_options = {
 
 
     title: {
-        text: 'Sales per employee per weekday'
+        text: 'Visualisation of user distance matrix as heatmap'
     },
 
     xAxis: {
@@ -48,7 +48,7 @@ var heat_options = {
     },
 
     series: [{
-        name: 'Sales per employee',
+        name: 'Visualisation of user distance matrix as heatmap',
         borderWidth: 1,
         data: [],
         dataLabels: {
