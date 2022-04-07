@@ -16,7 +16,7 @@ from zipfile import ZipFile
 import os
 import sys
 import json
-from scripts import processing, clustering
+from scripts import processing
 
 
 app = Flask(__name__)
