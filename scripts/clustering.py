@@ -5,6 +5,7 @@ import numpy as np
 import psycopg2
 import processing
 
+
 def parse_args():  # pragma: no cover
     parser = argparse.ArgumentParser()
 
