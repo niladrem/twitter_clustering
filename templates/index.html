@@ -71,6 +71,10 @@
     					<label for="nclass">Number of classes</label>
     					<input type="number" class="form-control" id="nclass" min="1" step="1" value=2>
   					</div>
+  					<div class="form-group form-check">
+    					<input type="checkbox" class="form-check-input" id="nlp">
+    					<label class="form-check-label" for="nlp">Include sentiment analysis</label>
+  					</div>
   					
 				</form>
 			</div>
@@ -165,7 +169,7 @@
 
 
 	$('#submit1').on('click', function(){
-		cb(document.getElementById('query').value + ';' + document.getElementById('nclass').value + ';' + document.getElementById('geniethreshold').value + ';' + document.getElementById('follow').value + ';' + document.getElementById('retweet').value + ';' + document.getElementById('like').value + ';' + document.getElementById('mention').value + ';' + document.getElementById('quote').value + ';' + document.getElementById('reply').value + ';' + document.getElementById('friend').value)
+		cb(document.getElementById('query').value + ';' + document.getElementById('nclass').value + ';' + document.getElementById('geniethreshold').value + ';' + document.getElementById('follow').value + ';' + document.getElementById('retweet').value + ';' + document.getElementById('like').value + ';' + document.getElementById('mention').value + ';' + document.getElementById('quote').value + ';' + document.getElementById('reply').value + ';' + document.getElementById('friend').value + ';' + document.getElementById('nlp').checked)
 		$('#submit2').prop("disabled", false);
 		$('#submit3').prop("disabled", false);
 		$('#submit4').toggleClass('disabled')

@@ -64,7 +64,9 @@ def process_data():
 
 
 	user_map = processing.createUserMapping(us)
-	X = processing.createX(rel, user_map, weight_dict)
+	if (data[10] == 'false'):
+		X = processing.createX(rel, user_map, weight_dict)
+	else: X = processing.createX(rel, user_map, weight_dict, True)
 	X_id = user_map.X_id
 	gen = genieclust.Genie(int(data[1]), affinity="precomputed", gini_threshold=float(data[2]))
 	labels = gen.fit_predict(X)
