@@ -114,7 +114,7 @@ def createX(rel, user_map, weight_dict="default", use_sentiment=False):
     X = np.zeros((len(user_map), len(user_map)))
     for i, r in rel.iterrows():
         if use_sentiment:
-            if type(r['content']) == string:
+            if type(r['content']) == str:
                 score = getScore(r['content'])
                 X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]*score
                 X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]*score
