@@ -49,7 +49,6 @@ def process_data():
 	data = np.array(data.split(';'))
 	if data[0] == '':
 		data[0] = '*'
-	data[0] = "'" + data[0] + "'"
 
 	weight_dict = {
 			"follow": int(data[3]),
@@ -88,7 +87,7 @@ def process_data():
 	Xser = []
 	for i in range(len(Xi)):
 		for j in range(len(Xi)):
-			Xser.append([i, j, Xi[i, j]])
+			Xser.append([i, j, Xi.iat[i, j]])
 	Xser = pd.DataFrame(Xser)
 	Xser.to_csv('data/temp/Xser.csv', header=False, index=False)
 
