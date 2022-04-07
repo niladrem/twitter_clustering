@@ -79,15 +79,6 @@ def process_data():
 	cluster_size2 = pd.DataFrame(cluster_size)
 	cluster_size2.to_csv('data/temp/cluster_size.csv', header=False, index=False)
 
-	labels = pd.DataFrame(labels)
-	us = pd.concat([us, labels], axis=1)
-	us.rename(columns={0:'cluster'}, inplace=True)
-
-	np.savetxt("data/X.csv", X, delimiter=",", newline="\n")
-	user_map.to_csv("data/user_map.csv")
-	us.to_csv("data/users.csv")
-	rel.to_csv("data/relations.csv")
-
 	# for heatmap
 	Xi = pd.DataFrame(X)
 	Xi['labels'] = labels
@@ -100,6 +91,15 @@ def process_data():
 			Xser.append([i, j, Xi[i, j]])
 	Xser = pd.DataFrame(Xser)
 	Xser.to_csv('data/temp/Xser.csv', header=False, index=False)
+
+	labels = pd.DataFrame(labels)
+	us = pd.concat([us, labels], axis=1)
+	us.rename(columns={0:'cluster'}, inplace=True)
+
+	np.savetxt("data/X.csv", X, delimiter=",", newline="\n")
+	user_map.to_csv("data/user_map.csv")
+	us.to_csv("data/users.csv")
+	rel.to_csv("data/relations.csv")
 
 	return redirect(url_for('index'))
 
