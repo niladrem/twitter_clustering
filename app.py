@@ -24,22 +24,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-	cluster_size = []
-	try:
-		cluster_size = pd.read_csv('data/temp/cluster_size.csv', header=None)
-		cluster_size = cluster_size[0].values.tolist()
-	except:
-		print("cluster_size not found")
-
-	xser = []
-	try:
-		xser = pd.read_csv('data/temp/Xser.csv', header=None)
-		xser = xser.values.tolist()
-	except:
-		print("xser not found")
-	xser = json.dumps(xser)
-
-	return render_template('index.html', cluster_size=cluster_size, heat_data=xser)
+	return render_template('index.html')
 
 
 @app.route('/charts', methods=['POST', 'GET'])
@@ -115,3 +100,27 @@ def download_file():
 	stream.seek(0)
 
 	return send_file(stream, as_attachment=True, attachment_filename='twitter_data.zip')
+
+
+@app.route('get_heat_data', methods=['POST'])
+def get_heat_data():
+	data = []
+	try:
+		data = pd.read_csv('data/temp/Xser.csv', header=None)
+		data = data.values.tolist()
+	except:
+		print("heat data not found")
+
+	return json.dumps(data)
+
+
+@app.route('get_cluster_size', methods=['POST'])
+def get_cluster_size():
+	cluster_size = []
+	try:
+		cluster_size = pd.read_csv('data/temp/cluster_size.csv', header=None)
+		cluster_size = cluster_size[0].values.tolist()
+	except:
+		print("cluster_size not found")
+
+	return json.dumps(cluster_size)

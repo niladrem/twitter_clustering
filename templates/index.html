@@ -146,7 +146,7 @@
 			</div>
 		</div>
 
-
+	</div>
 
 
 </body>
@@ -177,7 +177,14 @@
 
 
 	$('#submit2').on('click', function(){
-		var heat_data = '{{ heat_data }}'
+		var heat_data = "[]"
+		$.ajax({
+			type: "POST",
+			url: /get_heat_data,
+			success: function(response) {
+				heat_data = response
+			}
+		});
 		heat_data = JSON.parse(heat_data)
 
 		heat_options.series = [{
@@ -194,7 +201,14 @@
 
 
 	$('#submit3').on('click', function(){
-		var cluster_size = '{{ cluster_size }}'
+		var cluster_size = "[]"
+		$.ajax({
+			type: "POST",
+			url: /get_cluster_size,
+			success: function(response) {
+				cluster_size = response
+			}
+		});
 		cluster_size = cluster_size.slice(1, cluster_size.length - 1).split(', ').map(Number)
 
 		bubble_options.series = [{name: "", data: cluster_size}]
