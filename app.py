@@ -102,7 +102,7 @@ def download_file():
 	return send_file(stream, as_attachment=True, attachment_filename='twitter_data.zip')
 
 
-@app.route('get_heat_data', methods=['POST'])
+@app.route('/get_heat_data', methods=['POST'])
 def get_heat_data():
 	data = []
 	try:
@@ -114,7 +114,7 @@ def get_heat_data():
 	return json.dumps(data)
 
 
-@app.route('get_cluster_size', methods=['POST'])
+@app.route('/get_cluster_size', methods=['POST'])
 def get_cluster_size():
 	cluster_size = []
 	try:
