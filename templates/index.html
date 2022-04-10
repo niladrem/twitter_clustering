@@ -183,19 +183,19 @@
 			url: "/get_heat_data",
 			success: function(response) {
 				heat_data = response
+				heat_data = JSON.parse(heat_data)
+
+				heat_options.series = [{
+					name: 'Visualisation of user distance matrix as heatmap',
+					data: heat_data,
+					dataLabels: {
+						enabled: true,
+						color: '#000000'
+					}
+				}]
+				var chart1 = Highcharts.chart('chart1', heat_options)
 			}
 		});
-		heat_data = JSON.parse(heat_data)
-
-		heat_options.series = [{
-    		name: 'Visualisation of user distance matrix as heatmap',
-    		data: heat_data,
-        	dataLabels: {
-        		enabled: true,
-        		color: '#000000'
-    		}
-		}]
-		var chart1 = Highcharts.chart('chart1', heat_options)
 
 	})
 
@@ -207,12 +207,12 @@
 			url: "/get_cluster_size",
 			success: function(response) {
 				cluster_size = response
+				cluster_size = cluster_size.slice(1, cluster_size.length - 1).split(', ').map(Number)
+
+				bubble_options.series = [{name: "", data: cluster_size}]
+				var chart2 = Highcharts.chart('chart2', bubble_options);
 			}
 		});
-		cluster_size = cluster_size.slice(1, cluster_size.length - 1).split(', ').map(Number)
-
-		bubble_options.series = [{name: "", data: cluster_size}]
-		var chart2 = Highcharts.chart('chart2', bubble_options);
 	})
 
 </script>
