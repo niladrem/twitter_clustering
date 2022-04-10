@@ -6,7 +6,7 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
-import argparse
+import os
 
 classifier = TextClassifier.load('en-sentiment')
 
@@ -17,18 +17,21 @@ def getDBData(query="*", limit=None):
     users = None
     relations = None
     try:
-        connection = psycopg2.connect(user=os.environ("TWT_USER"),
-                                     password=os.environ("TWT_PASSWORD"),
-                                     host=os.environ("TWT_HOST"),
-                                     port=os.environ("TWT_PORT"),
-                                     database=os.environ("TWT_DATABASE"))
+        connection = psycopg2.connect(user=os.environ.get("TWT_USER"),
+                                     password=os.environ.get("TWT_PASSWORD"),
+                                     host=os.environ.get("TWT_HOST"),
+                                     port=os.environ.get("TWT_PORT"),
+                                     database=os.environ.get("TWT_DATABASE"))
         print("Estabilished connection to PostgreSQL")
+
+        users_query = "SELECT * from users where id in (SELECT id_source from relations where query='{}') " \
+                      "or id in (SELECT id_destination from relations where query='{}')".format(query, query)
         if limit is None:
-            users = pd.read_sql("SELECT * from users where query=" + str(query), connection)
-            relations = pd.read_sql("SELECT * from relations where query=" + str(query), connection)
+            users = pd.read_sql(users_query, connection)
+            relations = pd.read_sql("SELECT * from relations where query='{}'".format(query), connection)
         else:
-            users = pd.read_sql("SELECT * from users where query=" + str(query) + " limit " + str(limit), connection)
-            relations = pd.read_sql("SELECT * from relations where query=" + str(query) + " limit" + str(limit), connection)
+            users = pd.read_sql(users_query + " limit " + str(limit), connection)
+            relations = pd.read_sql("SELECT * from relations where query='{}' limit {}".format(query, limit), connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)
@@ -67,8 +70,8 @@ def predict(sentence):
     text = Sentence(sentence)
     # stacked_embeddings.embed(text)
     classifier.predict(text)
-    result = text.to_dict()['labels'][0]['confidence']
-    if text.to_dict()['labels'][0]['value'] == "NEGATIVE":
+    result = text.to_dict()['all labels'][0]['confidence']
+    if text.to_dict()['all labels'][0]['value'] == "NEGATIVE":
         result = result * (-1)
     return result
 
@@ -114,7 +117,7 @@ def createX(rel, user_map, weight_dict="default", use_sentiment=False):
     X = np.zeros((len(user_map), len(user_map)))
     for i, r in rel.iterrows():
         if use_sentiment:
-            if type(r['content']) == string:
+            if type(r['content']) == str:
                 score = getScore(r['content'])
                 X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]*score
                 X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]*score
