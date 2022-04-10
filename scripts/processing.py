@@ -1,3 +1,5 @@
+import os
+
 import psycopg2
 from psycopg2 import Error
 import pandas as pd
@@ -7,31 +9,44 @@ from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
 import os
+import argparse
 
 classifier = TextClassifier.load('en-sentiment')
 
 
-def getDBData(query="*", limit=None):
+def getDBData(query="%", limit=None, custom_conn=None):
     """Downloads PostgreSQL data into pandas dataframes"""
     connection = None
     users = None
     relations = None
     try:
-        connection = psycopg2.connect(user=os.environ.get("TWT_USER"),
-                                     password=os.environ.get("TWT_PASSWORD"),
-                                     host=os.environ.get("TWT_HOST"),
-                                     port=os.environ.get("TWT_PORT"),
-                                     database=os.environ.get("TWT_DATABASE"))
+        if custom_conn is None:
+            connection = psycopg2.connect(user=os.environ.get("TWT_USER"),
+                                          password=os.environ.get("TWT_PASSWORD"),
+                                          host=os.environ.get("TWT_HOST"),
+                                          port=os.environ.get("TWT_PORT"),
+                                          database=os.environ.get("TWT_DATABASE"))
+        else:
+            connection = custom_conn
         print("Estabilished connection to PostgreSQL")
 
         users_query = "SELECT * from users where id in (SELECT id_source from relations where query='{}') " \
                       "or id in (SELECT id_destination from relations where query='{}')".format(query, query)
         if limit is None:
-            users = pd.read_sql(users_query, connection)
-            relations = pd.read_sql("SELECT * from relations where query='{}'".format(query), connection)
+            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
+                                "'" + str(
+                query) + "') or id in (select id_destination from public.relations where query = "
+                         "'" + str(query) + "')", connection)
+            relations = pd.read_sql("SELECT * from relations where query like '%"{}"%'".format(query), connection)
+            print(users)
+            print(relations)
         else:
-            users = pd.read_sql(users_query + " limit " + str(limit), connection)
-            relations = pd.read_sql("SELECT * from relations where query='{}' limit {}".format(query, limit), connection)
+            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
+                                "'" + str(
+                query) + "') or id in (select id_destination from public.relations where query = "
+                         "'" + str(query) + "') limit " + str(limit), connection)
+            relations = pd.read_sql("SELECT * from relations where query like '%{}%' limit {}".format(query, limit),
+                                    connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)
@@ -40,7 +55,7 @@ def getDBData(query="*", limit=None):
             connection.close()
             print("Closed connection to PostgreSQL")
     return users, relations
-    
+
 
 def clean(raw):
     """ Remove hyperlinks and markup """
@@ -119,8 +134,8 @@ def createX(rel, user_map, weight_dict="default", use_sentiment=False):
         if use_sentiment:
             if type(r['content']) == str:
                 score = getScore(r['content'])
-                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]*score
-                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]*score
+                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']] * score
+                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']] * score
             else:
                 X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
                 X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
@@ -128,7 +143,7 @@ def createX(rel, user_map, weight_dict="default", use_sentiment=False):
             X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
             X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
     if use_sentiment:
-        X[X<0] = 0
+        X[X < 0] = 0
     # normalization
     X = 1 / (X + (X == 0))
     np.fill_diagonal(X, 0)
