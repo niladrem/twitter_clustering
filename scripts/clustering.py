@@ -36,3 +36,4 @@ if __name__ == "__main__":
     print("Writing data")
     X = np.loadtxt("data/X.csv", delimiter=",")
     user_map = pd.read_csv("data/user_map.csv")
+

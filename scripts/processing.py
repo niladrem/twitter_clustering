@@ -11,17 +11,24 @@ import argparse
 classifier = TextClassifier.load('en-sentiment')
 
 
-def getDBData(connection, limit=None):
+def getDBData(query="*", limit=None):
     """Downloads PostgreSQL data into pandas dataframes"""
+    connection = None
     users = None
     relations = None
     try:
+        connection = psycopg2.connect(user=os.environ("TWT_USER"),
+                                     password=os.environ("TWT_PASSWORD"),
+                                     host=os.environ("TWT_HOST"),
+                                     port=os.environ("TWT_PORT"),
+                                     database=os.environ("TWT_DATABASE"))
+        print("Estabilished connection to PostgreSQL")
         if limit is None:
-            users = pd.read_sql("SELECT * from users", connection)
-            relations = pd.read_sql("SELECT * from relations", connection)
+            users = pd.read_sql("SELECT * from users where query=" + str(query), connection)
+            relations = pd.read_sql("SELECT * from relations where query=" + str(query), connection)
         else:
-            users = pd.read_sql("SELECT * from users limit " + str(limit), connection)
-            relations = pd.read_sql("SELECT * from relations limit" + str(limit), connection)
+            users = pd.read_sql("SELECT * from users where query=" + str(query) + " limit " + str(limit), connection)
+            relations = pd.read_sql("SELECT * from relations where query=" + str(query) + " limit" + str(limit), connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)
@@ -30,7 +37,7 @@ def getDBData(connection, limit=None):
             connection.close()
             print("Closed connection to PostgreSQL")
     return users, relations
-
+    
 
 def clean(raw):
     """ Remove hyperlinks and markup """
@@ -88,7 +95,7 @@ def createUserMapping(us):
     return user_map
 
 
-def createX(rel, user_map, weight_dict="default"):
+def createX(rel, user_map, weight_dict="default", use_sentiment=False):
     """Creates X distance matrix for all users"""
     if weight_dict == "default":
         weight_dict = {
@@ -106,11 +113,20 @@ def createX(rel, user_map, weight_dict="default"):
                     how='left', left_on='id_destination', right_on='twitter_id')
     X = np.zeros((len(user_map), len(user_map)))
     for i, r in rel.iterrows():
-        X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
-        X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
-
+        if use_sentiment:
+            if type(r['content']) == string:
+                score = getScore(r['content'])
+                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]*score
+                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]*score
+            else:
+                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
+                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
+        else:
+            X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
+            X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
+    if use_sentiment:
+        X[X<0] = 0
     # normalization
     X = 1 / (X + (X == 0))
     np.fill_diagonal(X, 0)
     return X
-
