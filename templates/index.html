@@ -180,7 +180,7 @@
 		var heat_data = "[]"
 		$.ajax({
 			type: "POST",
-			url: /get_heat_data,
+			url: "/get_heat_data",
 			success: function(response) {
 				heat_data = response
 			}
@@ -204,7 +204,7 @@
 		var cluster_size = "[]"
 		$.ajax({
 			type: "POST",
-			url: /get_cluster_size,
+			url: "/get_cluster_size",
 			success: function(response) {
 				cluster_size = response
 			}
