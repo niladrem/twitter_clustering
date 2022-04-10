@@ -1,3 +1,5 @@
+import os
+
 import psycopg2
 from psycopg2 import Error
 import pandas as pd
@@ -6,29 +8,39 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
+import os
 import argparse
 
 classifier = TextClassifier.load('en-sentiment')
 
 
-def getDBData(query="*", limit=None):
+def getDBData(query="%", limit=None, custom_conn=None):
     """Downloads PostgreSQL data into pandas dataframes"""
     connection = None
     users = None
     relations = None
     try:
-        connection = psycopg2.connect(user=os.environ("TWT_USER"),
-                                     password=os.environ("TWT_PASSWORD"),
-                                     host=os.environ("TWT_HOST"),
-                                     port=os.environ("TWT_PORT"),
-                                     database=os.environ("TWT_DATABASE"))
+        if custom_conn is None:
+            connection = psycopg2.connect(user=os.environ.get("TWT_USER"),
+                                         password=os.environ.get("TWT_PASSWORD"),
+                                         host=os.environ.get("TWT_HOST"),
+                                         port=os.environ.get("TWT_PORT"),
+                                         database=os.environ.get("TWT_DATABASE"))
+        else:
+            connection = custom_conn
         print("Estabilished connection to PostgreSQL")
         if limit is None:
-            users = pd.read_sql("SELECT * from users where query=" + str(query), connection)
-            relations = pd.read_sql("SELECT * from relations where query=" + str(query), connection)
+            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
+                                "'"+str(query)+"') or id in (select id_destination from public.relations where query = "
+                                "'"+str(query)+"')", connection)
+            relations = pd.read_sql("SELECT * from relations where query='" + str(query)+"'", connection)
+            print(users)
+            print(relations)
         else:
-            users = pd.read_sql("SELECT * from users where query=" + str(query) + " limit " + str(limit), connection)
-            relations = pd.read_sql("SELECT * from relations where query=" + str(query) + " limit" + str(limit), connection)
+            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
+                                "'"+str(query)+"') or id in (select id_destination from public.relations where query = "
+                                "'"+str(query)+"') limit " + str(limit), connection)
+            relations = pd.read_sql("SELECT * from relations where query=" + str(query) + "' limit " + str(limit), connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)

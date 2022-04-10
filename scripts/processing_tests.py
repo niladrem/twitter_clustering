@@ -56,7 +56,7 @@ class test_GetFromPostgres(unittest.TestCase):
             );"""
 
     def test_getDBdata(self):
-        users, relations = processing.getDBData(self.conn)
+        users, relations = processing.getDBData("logh", custom_conn = self.conn)
         self.assertTrue(users.equals(pd.DataFrame([{"id": '33', "screen_name": "Kircheis",
                                                     "followers_count": 10, "friends_count": 10,
                                                     "favourites_count": 10}])) &
