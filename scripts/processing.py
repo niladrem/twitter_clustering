@@ -37,7 +37,7 @@ def getDBData(query="%", limit=None, custom_conn=None):
                                 "'" + str(
                 query) + "') or id in (select id_destination from public.relations where query = "
                          "'" + str(query) + "')", connection)
-            relations = pd.read_sql("SELECT * from relations where query like '%"{}"%'".format(query), connection)
+            relations = pd.read_sql("SELECT * from relations where query like '%{}%'".format(query), connection)
 
 
         else:
