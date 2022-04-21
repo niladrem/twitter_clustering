@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <title>Twitter Clustering</title>
+    <style>
+        nav a {
+            color: #d64161;
+            font-size: 3em;
+            margin-left: 50px;
+            text-decoration: none;
+        }
+
+        .top-buffer {margin-top: 20px}
+    </style>
+</head>
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/heatmap.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/boost-canvas.js"></script>
+<script src="https://code.highcharts.com/modules/boost.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+
+
+
+
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand">Twitter Clustering</a>
+    </div>
+    </nav>
+    
+
+    
+
+
+    
+
+	<div class="container">
+
+		<div class="row">
+			<div class="col">
+				<form>
+  					<div class="form-group">
+    					<label for="query">Keyword/Query</label>
+    					<input type="text" class="form-control" id="query" placeholder="Enter query">
+    					<small id="queryhelp" class="form-text text-muted">You can provide keyword to filter by or an SQL after-select statement</small>
+  					</div>
+  					<div class="form-group form-check">
+    					<label for="geniethreshold">Clustering threshold</label>
+						<input type="number" class="form-control" min="0.01" max="0.99" step="0.01" value=0.5 id="geniethreshold">
+  					</div>
+  					<div class="form-group form-check">
+    					<label for="nclass">Number of classes</label>
+    					<input type="number" class="form-control" id="nclass" min="1" step="1" value=2>
+  					</div>
+  					<div class="form-group form-check">
+    					<input type="checkbox" class="form-check-input" id="nlp">
+    					<label class="form-check-label" for="nlp">Include sentiment analysis</label>
+  					</div>
+  					
+				</form>
+			</div>
+		</div>
+
+		<div class="row">
+			<label style='font-size: 20px'>Weight dictionary</label>
+			<div class="col">
+				<label for="follow">Follow</label>
+    			<input type="number" class="form-control" id="follow" min="1" step="1" value=50>
+			</div>
+			<div class="col">
+				<label for="retweet">Retweet</label>
+    			<input type="number" class="form-control" id="retweet" min="1" step="1" value=5>
+			</div>
+			<div class="col">
+				<label for="like">Like</label>
+    			<input type="number" class="form-control" id="like" min="1" step="1" value=10>
+			</div>
+			<div class="col">
+				<label for="mention">Mention</label>
+    			<input type="number" class="form-control" id="mention" min="1" step="1" value=10>
+			</div>
+			<div class="col">
+				<label for="quote">Quote</label>
+    			<input type="number" class="form-control" id="quote" min="1" step="1" value=5>
+			</div>
+			<div class="col">
+				<label for="reply">Reply</label>
+    			<input type="number" class="form-control" id="reply" min="1" step="1" value=10>
+			</div>
+			<div class="col">
+				<label for="friend">Friend</label>
+    			<input type="number" class="form-control" id="friend" min="1" step="1" value=50>
+			</div>
+		</div>
+
+		<div class="row top-buffer">
+			<div class="col">
+				<button id="submit1" type="submit" class="btn btn-info" >Process parameters</button>
+			</div>
+			<div class="col">
+				<button id="submit2" type="submit" class="btn btn-info" disabled>Update heatmap</button>
+			</div>
+			<div class="col">
+				<button id="submit3" type="submit" class="btn btn-info" disabled>Update bubble chart</button>
+			</div>
+			<div class="col">
+				<a href="{{ url_for('.download_file') }}" id="submit4" class="btn btn-info disabled" role=button >Download data</a>
+			</div>
+
+		</div>
+
+		<div class="row top-buffer">
+			<div class="col">
+
+				<figure class="highcharts-figure">
+    				<div id="chart1"></div>
+				</figure>
+
+			</div>
+
+			<div class="col">
+
+				<figure class="highcharts-figure">
+    				<div id="chart2"></div>
+				</figure>
+
+			</div>
+		</div>
+
+	</div>
+
+
+</body>
+
+
+
+
+
+<script src="static/js/heatmap.js"></script>
+<script src="static/js/bubble.js"></script>
+
+<script>
+    function cb(selection) {
+        $.getJSON({
+            url: "/charts", data: { 'data': selection }, success: function (result) {
+            }
+        });
+    }
+
+
+
+	$('#submit1').on('click', function(){
+		cb(document.getElementById('query').value + ';' + document.getElementById('nclass').value + ';' + document.getElementById('geniethreshold').value + ';' + document.getElementById('follow').value + ';' + document.getElementById('retweet').value + ';' + document.getElementById('like').value + ';' + document.getElementById('mention').value + ';' + document.getElementById('quote').value + ';' + document.getElementById('reply').value + ';' + document.getElementById('friend').value + ';' + document.getElementById('nlp').checked)
+		$('#submit2').prop("disabled", false);
+		$('#submit3').prop("disabled", false);
+		$('#submit4').toggleClass('disabled')
+	})
+
+
+	$('#submit2').on('click', function(){
+		var heat_data = "[]"
+		$.ajax({
+			type: "POST",
+			url: "/get_heat_data",
+			success: function(response) {
+				heat_data = response
+				heat_data = JSON.parse(heat_data)
+
+				heat_options.series = [{
+					name: 'Visualisation of user distance matrix as heatmap',
+					data: heat_data,
+					dataLabels: {
+						enabled: true,
+						color: '#000000'
+					}
+				}]
+				var chart1 = Highcharts.chart('chart1', heat_options)
+			}
+		});
+
+	})
+
+
+	$('#submit3').on('click', function(){
+		var cluster_size = "[]"
+		$.ajax({
+			type: "POST",
+			url: "/get_cluster_size",
+			success: function(response) {
+				cluster_size = response
+				cluster_size = cluster_size.slice(1, cluster_size.length - 1).split(', ').map(Number)
+
+				bubble_options.series = [{name: "", data: cluster_size}]
+				var chart2 = Highcharts.chart('chart2', bubble_options);
+			}
+		});
+	})
+
+</script>
+
+</html>
+

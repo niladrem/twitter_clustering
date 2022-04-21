@@ -6,22 +6,32 @@ from flair.models import TextClassifier
 from flair.data import Sentence
 from segtok.segmenter import split_single
 import numpy as np
-import argparse
+import os
 
 classifier = TextClassifier.load('en-sentiment')
 
 
-def getDBData(connection, limit=None):
+def getDBData(query="*", limit=None):
     """Downloads PostgreSQL data into pandas dataframes"""
+    connection = None
     users = None
     relations = None
     try:
+        connection = psycopg2.connect(user=os.environ.get("TWT_USER"),
+                                     password=os.environ.get("TWT_PASSWORD"),
+                                     host=os.environ.get("TWT_HOST"),
+                                     port=os.environ.get("TWT_PORT"),
+                                     database=os.environ.get("TWT_DATABASE"))
+        print("Estabilished connection to PostgreSQL")
+
+        users_query = "SELECT * from users where id in (SELECT id_source from relations where query='{}') " \
+                      "or id in (SELECT id_destination from relations where query='{}')".format(query, query)
         if limit is None:
-            users = pd.read_sql("SELECT * from users", connection)
-            relations = pd.read_sql("SELECT * from relations", connection)
+            users = pd.read_sql(users_query, connection)
+            relations = pd.read_sql("SELECT * from relations where query='{}'".format(query), connection)
         else:
-            users = pd.read_sql("SELECT * from users limit " + str(limit), connection)
-            relations = pd.read_sql("SELECT * from relations limit" + str(limit), connection)
+            users = pd.read_sql(users_query + " limit " + str(limit), connection)
+            relations = pd.read_sql("SELECT * from relations where query='{}' limit {}".format(query, limit), connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)
@@ -30,7 +40,7 @@ def getDBData(connection, limit=None):
             connection.close()
             print("Closed connection to PostgreSQL")
     return users, relations
-
+    
 
 def clean(raw):
     """ Remove hyperlinks and markup """
@@ -60,8 +70,8 @@ def predict(sentence):
     text = Sentence(sentence)
     # stacked_embeddings.embed(text)
     classifier.predict(text)
-    result = text.to_dict()['labels'][0]['confidence']
-    if text.to_dict()['labels'][0]['value'] == "NEGATIVE":
+    result = text.to_dict()['all labels'][0]['confidence']
+    if text.to_dict()['all labels'][0]['value'] == "NEGATIVE":
         result = result * (-1)
     return result
 
@@ -88,7 +98,7 @@ def createUserMapping(us):
     return user_map
 
 
-def createX(rel, user_map, weight_dict="default"):
+def createX(rel, user_map, weight_dict="default", use_sentiment=False):
     """Creates X distance matrix for all users"""
     if weight_dict == "default":
         weight_dict = {
@@ -106,11 +116,20 @@ def createX(rel, user_map, weight_dict="default"):
                     how='left', left_on='id_destination', right_on='twitter_id')
     X = np.zeros((len(user_map), len(user_map)))
     for i, r in rel.iterrows():
-        X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
-        X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
-
+        if use_sentiment:
+            if type(r['content']) == str:
+                score = getScore(r['content'])
+                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]*score
+                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]*score
+            else:
+                X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
+                X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
+        else:
+            X[r['X_id_source'], r['X_id_destination']] += weight_dict[r['type']]
+            X[r['X_id_destination'], r['X_id_source']] += weight_dict[r['type']]
+    if use_sentiment:
+        X[X<0] = 0
     # normalization
     X = 1 / (X + (X == 0))
     np.fill_diagonal(X, 0)
     return X
-
