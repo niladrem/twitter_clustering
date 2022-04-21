@@ -32,19 +32,14 @@ def getDBData(query="%", limit=None, custom_conn=None):
 
         users_query = "SELECT * from users where id in (SELECT id_source from relations where query='{}') " \
                       "or id in (SELECT id_destination from relations where query='{}')".format(query, query)
+        relations_query = "SELECT * from relations where query like '{}'".format(query)
         if limit is None:
-            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
-                                "'{}') or id in (select id_destination from public.relations where query = "
-                         "'{}')".format(query, query), connection)
-            relations = pd.read_sql("SELECT * from relations where query like '%{}%'".format(query), connection)
-
+            users = pd.read_sql(users_query, connection)
+            relations = pd.read_sql(relations_query, connection)
 
         else:
-            users = pd.read_sql("SELECT * from users where id in (select id_source from relations where query = "
-                                "'{}') or id in (select id_destination from public.relations where query = "
-                         "'{}') limit ".format(query, query), connection)
-            relations = pd.read_sql("SELECT * from relations where query like '%{}%' limit {}".format(query, limit),
-                                    connection)
+            users = pd.read_sql("{} limit {}".format(users_query, limit), connection)
+            relations = pd.read_sql("{} limit {}".format(relations_query, limit), connection)
         print("Closed connection to PostgreSQL")
     except(Exception, Error) as e:
         print("Error while connecting to PostgreSQL", e)
